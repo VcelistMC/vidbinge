@@ -1,0 +1,5 @@
+package com.example.vidbinge.common
+
+object Secrets {
+    val TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1YjdkYjI5NDY4MGNhYmNhOWE4YmYxMzk3YmYyYmJiNSIsIm5iZiI6MTczOTYxMjcyNi43MzUwMDAxLCJzdWIiOiI2N2IwNjIzNmFmOWIwY2FhZTEzNWFkYWMiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.HzA9rasq2jWZYorh8a-NCaZIxAuu5CU6kqCUaSRE0j4"
+}

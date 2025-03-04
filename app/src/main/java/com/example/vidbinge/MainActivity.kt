@@ -1,5 +1,6 @@
 package com.example.vidbinge
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,10 +15,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.vidbinge.home.data.model.MovieCarouselItem
 import com.example.vidbinge.home.data.model.MoviePortraitItem
+import com.example.vidbinge.home.screens.HomeScreen
+import com.example.vidbinge.home.screens.HomeScreenContent
 import com.example.vidbinge.home.ui.components.MovieCarousel
 import com.example.vidbinge.home.ui.components.MoviePortraitCard
 import com.example.vidbinge.ui.theme.VidBingeTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,10 +30,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             VidBingeTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MoviePortraitCard(
-                        modifier = Modifier.padding(innerPadding).padding(horizontal = 20.dp),
-                        movieItem = MoviePortraitItem.moana2
-                    )
+
                 }
             }
         }
