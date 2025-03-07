@@ -25,9 +25,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import coil3.compose.AsyncImage
+import com.example.vidbinge.common.data.coil.TMDbImageSize
+import com.example.vidbinge.common.data.models.Movie
 import com.example.vidbinge.common.ext.debugBorder
 import com.example.vidbinge.common.utils.getRelativeLuminance
-import com.example.vidbinge.home.data.model.MoviePortraitItem
 
 @Composable
 private fun RatingPill(
@@ -62,7 +63,7 @@ private fun TitleBackDrop(
 @Composable
 fun MoviePortraitCard(
     modifier: Modifier = Modifier,
-    movieItem: MoviePortraitItem,
+    movieItem: Movie,
 ){
     ConstraintLayout(modifier.size(width = 200.dp, height = 310.dp).clip(RoundedCornerShape(8.dp))) {
         val (imageRef, ratingPillRef, titleRef) = createRefs()
@@ -73,9 +74,9 @@ fun MoviePortraitCard(
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             }.fillMaxSize(),
-            model = movieItem.imgUrl,
+            model = movieItem.posterFullPath(TMDbImageSize.LARGE),
             contentDescription = null,
-            contentScale = ContentScale.FillBounds
+            contentScale = ContentScale.Crop
         )
 
         RatingPill(
@@ -83,7 +84,7 @@ fun MoviePortraitCard(
                 top.linkTo(parent.top, 12.dp)
                 start.linkTo(parent.start, 12.dp)
             },
-            rating = movieItem.rating
+            rating = movieItem.voteAverage.toFloat()
         )
 
         TitleBackDrop(
@@ -92,7 +93,7 @@ fun MoviePortraitCard(
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             }.fillMaxWidth(),
-            text = movieItem.name
+            text = movieItem.title
         )
     }
 }
@@ -101,7 +102,5 @@ fun MoviePortraitCard(
 @Preview
 @Composable
 fun MoviePortraitCardPreview(){
-    MoviePortraitCard(
-        movieItem = MoviePortraitItem.mufasa
-    )
+
 }

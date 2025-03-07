@@ -11,33 +11,30 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import javax.inject.Inject
 
-class RetrofitClient @Inject constructor() {
-    val service: ApiService
-
-    private val baseUrl = "https://api.themoviedb.org/3/"
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
-    private val headersInterceptor = HeadersInterceptor()
-    private val client = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
-        .addInterceptor(headersInterceptor)
-        .build()
-
+abstract class RetrofitClient<T> {
+    val service: T
 
     init {
-        service = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(client)
-            .build()
-            .create(ApiService::class.java)
+        service = buildRetrofitClient()
     }
 
-    suspend fun <REQUEST, RESULT> doRequest(
+    abstract fun buildRetrofitClient(): T
+
+
+    open fun createHttpClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        val headersInterceptor = HeadersInterceptor()
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .addInterceptor(headersInterceptor)
+            .build()
+    }
+
+
+    fun <REQUEST, RESULT> doRequest(
         request: suspend () -> Response<REQUEST>,
         mapResponse: (REQUEST) -> RESULT
     ): Flow<RESULT> {

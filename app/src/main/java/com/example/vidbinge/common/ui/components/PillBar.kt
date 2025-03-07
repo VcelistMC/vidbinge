@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.vidbinge.common.data.models.PillModel
+import com.example.vidbinge.common.data.models.Pill
 import java.util.Locale
 
 
@@ -28,7 +28,7 @@ data class PillBarTheme (
 private fun Pill(
     modifier: Modifier = Modifier,
     pillBarTheme: PillBarTheme = PillBarTheme(),
-    content: PillModel,
+    content: Pill,
     isSelected: Boolean
 ){
     if(isSelected){
@@ -55,9 +55,9 @@ private fun Pill(
 @Composable
 fun PillBar(
     modifier: Modifier = Modifier,
-    choices: List<PillModel>,
-    selectedPill: PillModel,
-    onChoicePressed: (PillModel) -> Unit,
+    choices: List<Pill>,
+    selectedPill: Pill,
+    onChoicePressed: (Pill) -> Unit,
     pillBarTheme: PillBarTheme = PillBarTheme()
 ){
     LazyRow(
@@ -84,8 +84,8 @@ fun PillBar(
 fun PillBarPreview(){
     PillBar(
         modifier = Modifier,
-        choices = PillModel.mockList,
+        choices = Pill.mockList,
         onChoicePressed = {},
-        selectedPill = PillModel.mock3
+        selectedPill = Pill.mock3
     )
 }
