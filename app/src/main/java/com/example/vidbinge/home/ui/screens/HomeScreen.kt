@@ -1,10 +1,9 @@
 package com.example.vidbinge.home.ui.screens
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,36 +17,53 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vidbinge.common.data.models.Movie
-import com.example.vidbinge.common.data.models.Pill
+import com.example.vidbinge.common.data.models.PillChoices
 import com.example.vidbinge.common.ext.debugBorder
 import com.example.vidbinge.common.ui.components.PillBar
 import com.example.vidbinge.common.ui.components.PillBarTheme
 import com.example.vidbinge.home.ui.components.MovieCarousel
 import com.example.vidbinge.home.ui.components.MoviePortraitCard
+import com.example.vidbinge.home.ui.states.HomeScreenState
+import com.example.vidbinge.home.ui.viewmodels.HomeScreenViewModel
 
 @Composable
 fun HomeScreen(
-
+    modifier: Modifier = Modifier
 ) {
-
+    val viewModel = viewModel<HomeScreenViewModel>()
+    val state by viewModel.homeScreenState.collectAsStateWithLifecycle()
+    HomeScreenContent(
+        modifier = modifier,
+        homeScreenState = state,
+        onPillPressed = viewModel::onPillPressed,
+        onMoviePressed = viewModel::onMoviePressed
+    )
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreenContent(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    homeScreenState: HomeScreenState,
+    onPillPressed: (PillChoices) -> Unit,
+    onMoviePressed: (Movie) -> Unit
 ) {
     Scaffold(
         modifier = modifier,
@@ -74,30 +90,46 @@ fun HomeScreenContent(
             PillBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp)
-                    ,
-                choices = Pill.mockList,
-                selectedPill = Pill.mock1,
-                onChoicePressed = { /* TODO */ },
+                    .padding(12.dp),
+                choices = PillChoices.entries,
+                selectedPill = homeScreenState.selectedPill,
+                onChoicePressed = onPillPressed,
                 pillBarTheme = PillBarTheme(
                     selectedPillBg = MaterialTheme.colorScheme.primary,
                     selectedPillTextColor = MaterialTheme.colorScheme.onPrimary,
                     unselectedPillTextColor = MaterialTheme.colorScheme.primary
                 )
             )
-            NowPlaying()
+            if (!homeScreenState.isLoading) {
+                NowPlaying(
+                    movieList = homeScreenState.nowPlayingMovies,
+                    onNowPlayingMoviePressed = onMoviePressed
+                )
 
-            MoviePortraitCardList(
-                modifier = Modifier.padding(12.dp),
-                title = "Movies For You.",
-                movieList = Movie.mockList
-            )
+                MoviePortraitCardList(
+                    modifier = Modifier.padding(12.dp),
+                    title = "Popular Movies",
+                    movieList = homeScreenState.popularMovies,
+                    onMovieCardPressed = onMoviePressed
+                )
 
-            MoviePortraitCardList(
-                modifier = Modifier.padding(12.dp),
-                title = "Award Winning Movies.",
-                movieList = Movie.mockList
-            )
+                MoviePortraitCardList(
+                    modifier = Modifier.padding(12.dp),
+                    title = "Top Rated Movies",
+                    movieList = homeScreenState.topRatedMovies,
+                    onMovieCardPressed = onMoviePressed
+                )
+
+                MoviePortraitCardList(
+                    modifier = Modifier.padding(12.dp),
+                    title = "Upcoming Movies",
+                    movieList = homeScreenState.upcomingMovies,
+                    onMovieCardPressed = onMoviePressed
+                )
+            } else {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+            }
+
         }
     }
 }
@@ -107,10 +139,13 @@ fun HomeScreenContent(
 fun MoviePortraitCardList(
     modifier: Modifier = Modifier,
     title: String,
-    movieList: List<Movie>
+    movieList: List<Movie>,
+    onMovieCardPressed: (Movie) -> Unit
 ) {
     Column(modifier, Arrangement.spacedBy(12.dp)) {
         Text(
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Start,
             text = title,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
@@ -119,9 +154,10 @@ fun MoviePortraitCardList(
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(movieList){ movie ->
+            items(movieList) { movie ->
                 MoviePortraitCard(
-                    movieItem = movie
+                    modifier = Modifier.clickable { onMovieCardPressed(movie) },
+                    movieItem = movie,
                 )
             }
         }
@@ -175,6 +211,8 @@ fun BadgedBell(
 @Composable
 fun NowPlaying(
     modifier: Modifier = Modifier,
+    movieList: List<Movie>,
+    onNowPlayingMoviePressed: (Movie) -> Unit
 ) {
     Column(
         modifier
@@ -195,8 +233,8 @@ fun NowPlaying(
         MovieCarousel(
             modifier = Modifier
                 .fillMaxWidth(),
-            movieItems = Movie.mockList,
-            onCardPressed = {}
+            movieItems = movieList,
+            onCardPressed = onNowPlayingMoviePressed
         )
     }
 }
@@ -204,5 +242,4 @@ fun NowPlaying(
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    HomeScreenContent()
 }

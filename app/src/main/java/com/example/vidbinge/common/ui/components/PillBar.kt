@@ -1,5 +1,6 @@
 package com.example.vidbinge.common.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.vidbinge.common.data.models.Pill
+import com.example.vidbinge.common.data.models.PillChoices
 import java.util.Locale
 
 
@@ -28,7 +29,7 @@ data class PillBarTheme (
 private fun Pill(
     modifier: Modifier = Modifier,
     pillBarTheme: PillBarTheme = PillBarTheme(),
-    content: Pill,
+    content: PillChoices,
     isSelected: Boolean
 ){
     if(isSelected){
@@ -37,7 +38,7 @@ private fun Pill(
                 color = pillBarTheme.selectedPillBg,
                 shape = RoundedCornerShape(24.dp)
             ).padding(horizontal = 16.dp, vertical = 8.dp),
-            text = content.text.uppercase(Locale.ROOT),
+            text = content.name,
             color = pillBarTheme.selectedPillTextColor
         )
     }else {
@@ -46,7 +47,7 @@ private fun Pill(
                 color = pillBarTheme.unselectedPillBg,
                 shape = RoundedCornerShape(24.dp)
             ).padding(horizontal = 16.dp, vertical = 8.dp),
-            text = content.text.uppercase(Locale.ROOT),
+            text = content.name,
             color = pillBarTheme.unselectedPillTextColor
         )
     }
@@ -55,9 +56,9 @@ private fun Pill(
 @Composable
 fun PillBar(
     modifier: Modifier = Modifier,
-    choices: List<Pill>,
-    selectedPill: Pill,
-    onChoicePressed: (Pill) -> Unit,
+    choices: List<PillChoices>,
+    selectedPill: PillChoices,
+    onChoicePressed: (PillChoices) -> Unit,
     pillBarTheme: PillBarTheme = PillBarTheme()
 ){
     LazyRow(
@@ -67,6 +68,7 @@ fun PillBar(
         items(choices){ choice ->
             Pill(
                 modifier = Modifier.clickable {
+                    Log.d("412 - ${javaClass.simpleName}", choice.name)
                     onChoicePressed(choice)
                 },
                 content = choice,
@@ -82,10 +84,5 @@ fun PillBar(
 @Preview
 @Composable
 fun PillBarPreview(){
-    PillBar(
-        modifier = Modifier,
-        choices = Pill.mockList,
-        onChoicePressed = {},
-        selectedPill = Pill.mock3
-    )
+
 }

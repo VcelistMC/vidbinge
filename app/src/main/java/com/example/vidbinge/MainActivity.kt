@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.vidbinge.home.ui.screens.HomeScreen
 import com.example.vidbinge.home.ui.screens.HomeScreenContent
 import com.example.vidbinge.ui.theme.old.VidBingeTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,25 +25,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             VidBingeTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreenContent(Modifier.padding(innerPadding))
+                    HomeScreen(Modifier.padding(innerPadding))
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    VidBingeTheme {
-        Greeting("Android")
     }
 }
