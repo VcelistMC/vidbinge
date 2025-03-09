@@ -26,9 +26,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +46,8 @@ import com.example.vidbinge.common.data.coil.TMDbImageSize
 import com.example.vidbinge.common.data.models.Movie
 import com.example.vidbinge.common.ext.debugBorder
 import com.example.vidbinge.common.ext.noRippleClickable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 
@@ -55,6 +59,7 @@ fun MovieCarousel(
     onCardPressed: (Movie) -> Unit
 ) {
     val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     val centerItemIndex by remember {
         derivedStateOf {
@@ -66,6 +71,14 @@ fun MovieCarousel(
         }
     }
 
+    LaunchedEffect(centerItemIndex) {
+        delay(5000)
+        val nextItemToScrollTo = if(centerItemIndex + 1 >= movieItems.size) 0 else centerItemIndex+1
+        coroutineScope.launch {
+            lazyListState.animateScrollToItem(index = nextItemToScrollTo)
+        }
+    }
+
 
 
     Column(modifier, verticalArrangement = Arrangement.Center) {
@@ -73,9 +86,9 @@ fun MovieCarousel(
             modifier = Modifier,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             state = lazyListState,
-            flingBehavior = rememberSnapFlingBehavior(lazyListState)
+            flingBehavior = rememberSnapFlingBehavior(lazyListState),
         ) {
-            itemsIndexed(movieItems, key = { _, it -> it.id }) { ind, movie ->
+            items(movieItems, key = { it.id }) { movie ->
                 val screenWidth = LocalConfiguration.current.screenWidthDp.dp
                 AsyncImage(
                     modifier = Modifier

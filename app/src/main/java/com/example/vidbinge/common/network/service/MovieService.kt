@@ -1,8 +1,7 @@
 package com.example.vidbinge.common.network.service
 
-import com.example.vidbinge.common.data.models.Movie
 import com.example.vidbinge.common.network.dtos.ListResponse
-import com.example.vidbinge.common.network.dtos.movie.MovieDto
+import com.example.vidbinge.common.network.dtos.MovieDto
 import retrofit2.Response
 import retrofit2.http.GET
 

@@ -1,7 +1,7 @@
 package com.example.vidbinge.common.domain.mapper
 
 import com.example.vidbinge.common.data.models.Movie
-import com.example.vidbinge.common.network.dtos.movie.MovieDto
+import com.example.vidbinge.common.network.dtos.MovieDto
 import javax.inject.Inject
 
 class MovieMapper @Inject constructor(): Mapper<Movie, MovieDto>{
