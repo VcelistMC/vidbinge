@@ -1,5 +1,6 @@
 package com.example.vidbinge.home.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -36,11 +36,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vidbinge.common.data.models.Movie
 import com.example.vidbinge.common.data.models.PillChoices
-import com.example.vidbinge.common.ext.debugBorder
+import com.example.vidbinge.common.data.models.TvShow
 import com.example.vidbinge.common.ui.components.PillBar
 import com.example.vidbinge.common.ui.components.PillBarTheme
 import com.example.vidbinge.home.ui.components.MovieCarousel
 import com.example.vidbinge.home.ui.components.MoviePortraitCard
+import com.example.vidbinge.home.ui.components.TVCarousel
+import com.example.vidbinge.home.ui.components.TVPortraitCard
 import com.example.vidbinge.home.ui.states.HomeScreenState
 import com.example.vidbinge.home.ui.viewmodels.HomeScreenViewModel
 
@@ -101,31 +103,70 @@ fun HomeScreenContent(
                 )
             )
             if (!homeScreenState.isLoading) {
-                NowPlaying(
-                    movieList = homeScreenState.nowPlayingMovies,
-                    onNowPlayingMoviePressed = onMoviePressed
-                )
+                AnimatedVisibility(homeScreenState.selectedPill != PillChoices.TV) {
+                    NowPlayingMovies(
+                        movieList = homeScreenState.homeScreenMovies.nowPlayingMovies,
+                        onNowPlayingMoviePressed = onMoviePressed
+                    )
+                }
 
-                MoviePortraitCardList(
-                    modifier = Modifier.padding(12.dp),
-                    title = "Popular Movies",
-                    movieList = homeScreenState.popularMovies,
-                    onMovieCardPressed = onMoviePressed
-                )
+                AnimatedVisibility(homeScreenState.selectedPill == PillChoices.TV) {
+                    NowPlayingTv(
+                        tvList = homeScreenState.homescreenTV.nowAiringShows,
+                        onNowPlayingTvPressed = {}
+                    )
+                }
 
-                MoviePortraitCardList(
-                    modifier = Modifier.padding(12.dp),
-                    title = "Top Rated Movies",
-                    movieList = homeScreenState.topRatedMovies,
-                    onMovieCardPressed = onMoviePressed
-                )
+                AnimatedVisibility(
+                    homeScreenState.selectedPill == PillChoices.ALL ||
+                            homeScreenState.selectedPill == PillChoices.MOVIES
+                ) {
+                    MoviePortraitCardList(
+                        modifier = Modifier.padding(12.dp),
+                        title = "Popular Movies",
+                        movieList = homeScreenState.homeScreenMovies.popularMovies,
+                        onMovieCardPressed = onMoviePressed
+                    )
+                }
 
-                MoviePortraitCardList(
-                    modifier = Modifier.padding(12.dp),
-                    title = "Upcoming Movies",
-                    movieList = homeScreenState.upcomingMovies,
-                    onMovieCardPressed = onMoviePressed
-                )
+                AnimatedVisibility(
+                    homeScreenState.selectedPill == PillChoices.ALL ||
+                            homeScreenState.selectedPill == PillChoices.TV
+                ) {
+                    TVPortraitCardList(
+                        modifier = Modifier.padding(12.dp),
+                        title = "Popular TV Shows",
+                        tvList = homeScreenState.homescreenTV.popularShows,
+                        onTvCardPressed = {  }
+                    )
+                }
+
+
+                AnimatedVisibility(
+                    homeScreenState.selectedPill == PillChoices.ALL ||
+                        homeScreenState.selectedPill == PillChoices.MOVIES
+                ) {
+                    MoviePortraitCardList(
+                        modifier = Modifier.padding(12.dp),
+                        title = "Top Rated Movies",
+                        movieList = homeScreenState.homeScreenMovies.topRatedMovies,
+                        onMovieCardPressed = onMoviePressed
+                    )
+                }
+
+
+                AnimatedVisibility(
+                    homeScreenState.selectedPill == PillChoices.ALL ||
+                            homeScreenState.selectedPill == PillChoices.TV
+                ) {
+                    TVPortraitCardList(
+                        modifier = Modifier.padding(12.dp),
+                        title = "Top Rated TV Shows",
+                        tvList = homeScreenState.homescreenTV.topRatedShows,
+                        onTvCardPressed = {}
+                    )
+                }
+
             } else {
                 LinearProgressIndicator(Modifier.fillMaxWidth())
             }
@@ -158,6 +199,36 @@ fun MoviePortraitCardList(
                 MoviePortraitCard(
                     modifier = Modifier.clickable { onMovieCardPressed(movie) },
                     movieItem = movie,
+                )
+            }
+        }
+    }
+
+}
+
+@Composable
+fun TVPortraitCardList(
+    modifier: Modifier = Modifier,
+    title: String,
+    tvList: List<TvShow>,
+    onTvCardPressed: (TvShow) -> Unit
+) {
+    Column(modifier, Arrangement.spacedBy(12.dp)) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Start,
+            text = title,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            fontSize = 25.sp
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(tvList) { tv ->
+                TVPortraitCard(
+                    modifier = Modifier.clickable { onTvCardPressed(tv) },
+                    tvItem = tv,
                 )
             }
         }
@@ -209,7 +280,7 @@ fun BadgedBell(
 }
 
 @Composable
-fun NowPlaying(
+fun NowPlayingMovies(
     modifier: Modifier = Modifier,
     movieList: List<Movie>,
     onNowPlayingMoviePressed: (Movie) -> Unit
@@ -235,6 +306,37 @@ fun NowPlaying(
                 .fillMaxWidth(),
             movieItems = movieList,
             onCardPressed = onNowPlayingMoviePressed
+        )
+    }
+}
+
+@Composable
+fun NowPlayingTv(
+    modifier: Modifier = Modifier,
+    tvList: List<TvShow>,
+    onNowPlayingTvPressed: (TvShow) -> Unit
+) {
+    Column(
+        modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            "Airing Now on TV",
+            fontSize = 25.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+        TVCarousel(
+            modifier = Modifier
+                .fillMaxWidth(),
+            tvItems = tvList,
+            onCardPressed = onNowPlayingTvPressed
         )
     }
 }

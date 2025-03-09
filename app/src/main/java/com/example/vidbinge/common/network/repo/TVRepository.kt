@@ -15,4 +15,16 @@ class TVRepository @Inject constructor(
             it.results.subList(0, 6).map { dto -> tvMapper.mapToModel(dto) }
         }
     }
+
+    fun getPopularShows(): Flow<List<TvShow>> {
+        return tvRetrofitClient.doRequest({ tvRetrofitClient.service.getPopularShows() }) {
+            it.results.map { dto -> tvMapper.mapToModel(dto) }
+        }
+    }
+
+    fun getTopRatedShows(): Flow<List<TvShow>> {
+        return tvRetrofitClient.doRequest({ tvRetrofitClient.service.getTopRatedShows() }) {
+            it.results.map { dto -> tvMapper.mapToModel(dto) }
+        }
+    }
 }
