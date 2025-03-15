@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,9 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.vidbinge.common.data.models.Movie
+import com.example.vidbinge.common.data.models.movie.Movie
 import com.example.vidbinge.common.data.models.PillChoices
-import com.example.vidbinge.common.data.models.TvShow
+import com.example.vidbinge.common.data.models.tvshow.TvShow
 import com.example.vidbinge.common.ui.components.PillBar
 import com.example.vidbinge.common.ui.components.PillBarTheme
 import com.example.vidbinge.home.ui.components.MovieCarousel
@@ -48,15 +47,16 @@ import com.example.vidbinge.home.ui.viewmodels.HomeScreenViewModel
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onMovieClicked: (Movie) -> Unit,
+    viewModel: HomeScreenViewModel
 ) {
-    val viewModel = viewModel<HomeScreenViewModel>()
     val state by viewModel.homeScreenState.collectAsStateWithLifecycle()
     HomeScreenContent(
         modifier = modifier,
         homeScreenState = state,
         onPillPressed = viewModel::onPillPressed,
-        onMoviePressed = viewModel::onMoviePressed
+        onMoviePressed = onMovieClicked
     )
 }
 

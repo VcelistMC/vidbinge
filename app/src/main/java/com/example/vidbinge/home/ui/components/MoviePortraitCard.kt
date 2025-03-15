@@ -26,8 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import coil3.compose.AsyncImage
 import com.example.vidbinge.common.data.coil.TMDbImageSize
-import com.example.vidbinge.common.data.models.Movie
-import com.example.vidbinge.common.ext.debugBorder
+import com.example.vidbinge.common.data.models.movie.Movie
 import com.example.vidbinge.common.utils.getRelativeLuminance
 
 @Composable

@@ -1,9 +1,13 @@
-package com.example.vidbinge.common.data.models
+package com.example.vidbinge.common.data.models.movie
 
+import android.os.Parcelable
 import com.example.vidbinge.common.Constants
 import com.example.vidbinge.common.data.coil.TMDbImageSize
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
-
+@Parcelize
+@Serializable
 data class Movie(
     val id: Int,
     val isAdult: Boolean,
@@ -17,7 +21,7 @@ data class Movie(
     val title: String,
     val voteAverage: Double,
     val voteCount: Int
-){
+): Parcelable{
     fun backdropFullUrl(size: TMDbImageSize): String{
         return "${Constants.TMDb_IMAGE_BASE_URL}/${size.stringSize}${backdropPath}"
     }
@@ -25,6 +29,11 @@ data class Movie(
     fun posterFullPath(size: TMDbImageSize): String{
         return "${Constants.TMDb_IMAGE_BASE_URL}/${size.stringSize}${posterPath}"
     }
+
+    val releaseYear: String
+        get() {
+            return releaseDate.split("-").first()
+        }
 
     companion object {
         val mock1 = Movie(

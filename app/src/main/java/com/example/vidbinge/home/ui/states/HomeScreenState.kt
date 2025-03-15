@@ -1,8 +1,8 @@
 package com.example.vidbinge.home.ui.states
 
-import com.example.vidbinge.common.data.models.Movie
+import com.example.vidbinge.common.data.models.movie.Movie
 import com.example.vidbinge.common.data.models.PillChoices
-import com.example.vidbinge.common.data.models.TvShow
+import com.example.vidbinge.common.data.models.tvshow.TvShow
 
 data class HomeScreenState(
     val isLoading: Boolean = true,

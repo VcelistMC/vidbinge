@@ -1,6 +1,6 @@
-package com.example.vidbinge.common.network.repo
+package com.example.vidbinge.common.data.repo
 
-import com.example.vidbinge.common.data.models.TvShow
+import com.example.vidbinge.common.data.models.tvshow.TvShow
 import com.example.vidbinge.common.domain.mapper.TvMapper
 import com.example.vidbinge.common.network.client.TVRetrofitClient
 import kotlinx.coroutines.flow.Flow

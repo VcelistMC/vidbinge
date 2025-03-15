@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    kotlin("plugin.serialization") version "2.0.21"
+    id("kotlin-parcelize")
 }
 
 android {
@@ -21,6 +23,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            isDebuggable = false // TODO: CHANGE LATER
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -51,6 +61,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.palette.ktx)
+    implementation(libs.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -70,6 +82,27 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
     implementation("com.squareup.retrofit2:converter-scalars:2.1.0")
+
+
+    val nav_version = "2.8.9"
+
+    // Jetpack Compose integration
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+
+    // Views/Fragments integration
+    implementation("androidx.navigation:navigation-fragment:$nav_version")
+    implementation("androidx.navigation:navigation-ui:$nav_version")
+
+    // Feature module support for Fragments
+    implementation("androidx.navigation:navigation-dynamic-features-fragment:$nav_version")
+
+    // Testing Navigation
+    androidTestImplementation("androidx.navigation:navigation-testing:$nav_version")
+
+    // JSON serialization library, works with the Kotlin serialization plugin
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 }
 
 kapt {
