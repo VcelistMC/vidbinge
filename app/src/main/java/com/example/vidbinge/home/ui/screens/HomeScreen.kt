@@ -252,30 +252,6 @@ fun TopAppBar(
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp
         )
-        BadgedBell(
-            count = notificationCount
-        )
-    }
-}
-
-@Composable
-fun BadgedBell(
-    modifier: Modifier = Modifier,
-    count: Int = 2
-) {
-    BadgedBox(
-        modifier = modifier,
-        badge = {
-            Badge {
-                Text("$count")
-            }
-        }
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Notifications,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
-        )
     }
 }
 

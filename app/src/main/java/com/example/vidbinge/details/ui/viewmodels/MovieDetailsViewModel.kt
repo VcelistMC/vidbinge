@@ -1,11 +1,15 @@
 package com.example.vidbinge.details.ui.viewmodels
 
+import android.graphics.drawable.Drawable
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.vidbinge.MovieDetailsDestination
 import com.example.vidbinge.common.data.repo.MovieRepository
+import com.example.vidbinge.common.ext.getDominantColor
 import com.example.vidbinge.details.ui.states.MovieDetailsScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,10 +24,10 @@ class MovieDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val movieId = savedStateHandle.toRoute<MovieDetailsDestination>().movieId
+    private val movieId = savedStateHandle.toRoute<MovieDetailsDestination>().movieId
 
 
-    var _movieDetailsScreenState =
+    var movieDetailsScreenState =
         MutableStateFlow(MovieDetailsScreenState())
         private set
 
@@ -35,18 +39,24 @@ class MovieDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             movieRepository.getMovieDetails(movieId)
                 .onStart {
-                    _movieDetailsScreenState.update { it.copy(isCastListLoading = true, isLoading = true) }
+                    movieDetailsScreenState.update { it.copy(isCastListLoading = true, isLoading = true) }
                 }
                 .collect { details ->
-                    _movieDetailsScreenState.update {
+                    movieDetailsScreenState.update {
                         it.copy(
                             isLoading = false,
-
                             extraMovieDetails = details
                         )
                     }
                 }
 
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun onImageLoadedForAmbientColor(drawable: Drawable) {
+        val ambientColor = drawable.getDominantColor()
+        movieDetailsScreenState.update { it.copy(ambientScreenColor = ambientColor) }
+
     }
 }

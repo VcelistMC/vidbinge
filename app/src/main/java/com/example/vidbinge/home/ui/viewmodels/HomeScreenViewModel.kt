@@ -22,7 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
-    private val tvRespository: TVRepository
+    private val tvRepository: TVRepository
 ): ViewModel() {
     var homeScreenState = MutableStateFlow(HomeScreenState())
         private set
@@ -58,9 +58,9 @@ class HomeScreenViewModel @Inject constructor(
 
     private fun getHomeScreenTV(): Flow<HomeScreenTV> {
         return combine(
-            tvRespository.getNowAiringShows(),
-            tvRespository.getPopularShows(),
-            tvRespository.getTopRatedShows()
+            tvRepository.getNowAiringShows(),
+            tvRepository.getPopularShows(),
+            tvRepository.getTopRatedShows()
         ) { nowAiring, popular, topRated ->
             HomeScreenTV(
                 nowAiringShows = nowAiring,
@@ -71,7 +71,6 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun onPillPressed(selectedPill: PillChoices){
-        Log.d("412 - ${javaClass.simpleName}", selectedPill.name)
         homeScreenState.update {
             it.copy(selectedPill = selectedPill)
         }

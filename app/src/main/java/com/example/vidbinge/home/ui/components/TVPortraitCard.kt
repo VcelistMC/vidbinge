@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,7 +27,6 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import coil3.compose.AsyncImage
 import com.example.vidbinge.common.data.coil.TMDbImageSize
 import com.example.vidbinge.common.data.models.tvshow.TvShow
-import com.example.vidbinge.common.utils.getRelativeLuminance
 
 @Composable
 private fun RatingPill(
@@ -49,12 +49,9 @@ private fun RatingPill(
 private fun TitleBackDrop(
     modifier: Modifier = Modifier,
     text: String = "Mufasa",
-    bgColor: Color = Color(0xff6b5060)
 ){
-    val colorLuma = getRelativeLuminance(bgColor)
-    val textColor = if(colorLuma > 0.5f) Color.Black else Color.White
-    Box(modifier.background(color = bgColor).padding(horizontal = 12.dp, vertical = 12.dp)) {
-        Text(text, color = textColor, textAlign = TextAlign.Center, overflow = TextOverflow.Ellipsis)
+    Box(modifier.background(color = MaterialTheme.colorScheme.primary).padding(horizontal = 12.dp, vertical = 12.dp)) {
+        Text(text, color = MaterialTheme.colorScheme.onPrimary, textAlign = TextAlign.Start, overflow = TextOverflow.Ellipsis, maxLines = 1)
     }
 }
 
@@ -63,7 +60,7 @@ fun TVPortraitCard(
     modifier: Modifier = Modifier,
     tvItem: TvShow,
 ){
-    ConstraintLayout(modifier.size(width = 200.dp, height = 310.dp).clip(RoundedCornerShape(8.dp))) {
+    ConstraintLayout(modifier.size(width = 150.dp, height = 260.dp).clip(RoundedCornerShape(8.dp))) {
         val (imageRef, ratingPillRef, titleRef) = createRefs()
         AsyncImage(
             modifier = Modifier.constrainAs(imageRef){

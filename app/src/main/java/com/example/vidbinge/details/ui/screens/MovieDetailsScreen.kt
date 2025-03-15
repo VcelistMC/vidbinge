@@ -3,6 +3,7 @@
 package com.example.vidbinge.details.ui.screens
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -63,7 +64,10 @@ import coil3.compose.AsyncImagePainter
 import com.example.vidbinge.common.data.coil.TMDbImageSize
 import com.example.vidbinge.common.data.models.Cast
 import com.example.vidbinge.common.data.models.Genre
+import com.example.vidbinge.common.data.models.RelativeLuma
 import com.example.vidbinge.common.ext.getDominantColor
+import com.example.vidbinge.common.ext.relativeLuma
+import com.example.vidbinge.common.ui.components.LoadingObject
 import com.example.vidbinge.details.ui.viewmodels.MovieDetailsViewModel
 import com.example.vidbinge.details.ui.states.MovieDetailsScreenState
 
@@ -74,15 +78,16 @@ fun MovieDetailsScreen(
     onBackClicked: () -> Unit
 ) {
     val viewModel = hiltViewModel<MovieDetailsViewModel>()
-    val detailsScreenState = viewModel._movieDetailsScreenState.collectAsStateWithLifecycle()
-    if(detailsScreenState.value.isLoading){
-        LinearProgressIndicator(modifier = modifier.fillMaxWidth())
-    }else{
+    val detailsScreenState = viewModel.movieDetailsScreenState.collectAsStateWithLifecycle()
+    if (detailsScreenState.value.isLoading) {
+        LoadingObject()
+    } else {
         MovieDetailsContent(
             modifier = modifier,
             movieDetailsScreenState = detailsScreenState.value,
             onShareClicked = {},
             onWatchlistClicked = {},
+            onImageLoadedForAmbientColor = viewModel::onImageLoadedForAmbientColor,
             onBackClicked = onBackClicked
         )
     }
@@ -97,18 +102,20 @@ fun MovieDetailsContent(
     movieDetailsScreenState: MovieDetailsScreenState,
     onShareClicked: () -> Unit,
     onWatchlistClicked: () -> Unit,
-    onBackClicked: () -> Unit
+    onBackClicked: () -> Unit,
+    onImageLoadedForAmbientColor: (Drawable) -> Unit
 ) {
     val localResources = LocalContext.current.resources
-    val ambientColor = remember { mutableStateOf(Color.White) }
 
     ConstraintLayout(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         Color.Transparent,
-                        ambientColor.value,
+                        movieDetailsScreenState.ambientScreenColor,
                     ),
                     endY = 100f
                 )
@@ -124,14 +131,14 @@ fun MovieDetailsContent(
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 },
-            model = movieDetailsScreenState.extraMovieDetails!!.posterFullPath(TMDbImageSize.X_LARGE),
+            model = movieDetailsScreenState.extraMovieDetails!!.backdropFullUrl(TMDbImageSize.X_LARGE),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             alignment = Alignment.TopCenter,
             onState = { state ->
                 if (state is AsyncImagePainter.State.Success) {
                     val drawable = state.result.image.asDrawable(localResources)
-                    ambientColor.value = drawable.getDominantColor()
+                    onImageLoadedForAmbientColor(drawable)
                 }
             }
         )
@@ -151,7 +158,7 @@ fun MovieDetailsContent(
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            ambientColor.value,
+                            movieDetailsScreenState.ambientScreenColor,
                         ),
                         endY = 100f
                     )
@@ -176,10 +183,15 @@ fun MovieDetailsBlock(
     modifier: Modifier,
     screenState: MovieDetailsScreenState,
     onWatchlistClicked: () -> Unit,
-    onShareClicked: () -> Unit
+    onShareClicked: () -> Unit,
 ) {
     ConstraintLayout(modifier) {
         val (movieTitle, yearRuntimeRow, overviewText, genresChips, buttonRow, cast) = createRefs()
+
+        val textColorAgainstDominant = if (screenState.ambientScreenColor.relativeLuma == RelativeLuma.BRIGHT)
+            MaterialTheme.colorScheme.primary
+        else
+            MaterialTheme.colorScheme.onPrimary
 
         Text(
             text = screenState.extraMovieDetails!!.title,
@@ -189,7 +201,7 @@ fun MovieDetailsBlock(
             },
             fontWeight = FontWeight.ExtraBold,
             fontSize = 20.sp,
-            color = MaterialTheme.colorScheme.onPrimary
+            color = textColorAgainstDominant
         )
 
         Text(
@@ -199,7 +211,7 @@ fun MovieDetailsBlock(
                 start.linkTo(parent.start)
             },
             fontSize = 15.sp,
-            color = MaterialTheme.colorScheme.onPrimary
+            color = textColorAgainstDominant
         )
 
         GenresFlowChips(
@@ -208,7 +220,8 @@ fun MovieDetailsBlock(
                 start.linkTo(parent.start)
             },
             genres = screenState.extraMovieDetails.genres,
-            onChipClicked = {}
+            onChipClicked = {},
+            color = textColorAgainstDominant
         )
 
         Text(
@@ -220,7 +233,7 @@ fun MovieDetailsBlock(
                     start.linkTo(parent.start)
                 },
             fontSize = 15.sp,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = textColorAgainstDominant,
             textAlign = TextAlign.Start
         )
 
@@ -237,13 +250,14 @@ fun MovieDetailsBlock(
                 Modifier.weight(1f),
                 icon = {
                     Icon(
-                        imageVector = if (false) Icons.Default.Check else Icons.Default.Add,
+                        imageVector = if (screenState.isAddedToWatchList) Icons.Default.Check else Icons.Default.Add,
                         contentDescription = null,
-                        tint = Color.White
+                        tint = textColorAgainstDominant
                     )
                 },
                 text = "Watchlist",
-                onClick = onWatchlistClicked
+                onClick = onWatchlistClicked,
+                color = textColorAgainstDominant
             )
 
             SquareButton(
@@ -252,11 +266,12 @@ fun MovieDetailsBlock(
                     Icon(
                         imageVector = Icons.Default.Share,
                         contentDescription = null,
-                        tint = Color.White
+                        tint = textColorAgainstDominant
                     )
                 },
                 text = "Share",
-                onClick = onShareClicked
+                onClick = onShareClicked,
+                color = textColorAgainstDominant
             )
         }
 
@@ -279,7 +294,8 @@ fun MovieDetailsBlock(
                         end.linkTo(parent.end)
                     }
                     .padding(bottom = 20.dp),
-                cast = screenState.castList
+                cast = screenState.castList,
+                color = textColorAgainstDominant
             )
         }
     }
@@ -289,7 +305,8 @@ fun MovieDetailsBlock(
 fun GenresFlowChips(
     modifier: Modifier = Modifier,
     genres: List<Genre>,
-    onChipClicked: (Genre) -> Unit
+    onChipClicked: (Genre) -> Unit,
+    color: Color
 ) {
     FlowRow(modifier) {
         genres.forEach { genre ->
@@ -297,7 +314,7 @@ fun GenresFlowChips(
                 onClick = { onChipClicked(genre) },
                 label = { Text(genre.genre) },
                 colors = SuggestionChipDefaults.suggestionChipColors(
-                    labelColor = MaterialTheme.colorScheme.onPrimary,
+                    labelColor = color,
                     containerColor = Color.Transparent
                 )
             )
@@ -329,7 +346,8 @@ fun BackButton(
 @Composable
 fun Cast(
     modifier: Modifier = Modifier,
-    cast: List<Cast>
+    cast: List<Cast>,
+    color: Color
 ) {
     Column(
         modifier,
@@ -339,21 +357,21 @@ fun Cast(
             text = "Cast",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onPrimary
+            color = color
         )
 
         cast.forEach {
-            CastItem(castItem = it)
+            CastItem(castItem = it, color = color)
         }
 
     }
 }
 
-@Preview
 @Composable
 fun CastItem(
     modifier: Modifier = Modifier,
-    castItem: Cast = Cast.mockList.first()
+    castItem: Cast = Cast.mockList.first(),
+    color: Color
 ) {
     Row(
         modifier,
@@ -371,7 +389,7 @@ fun CastItem(
             text = castItem.name,
             fontSize = 15.sp,
             fontWeight = FontWeight.Normal,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = color,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Center
@@ -380,14 +398,14 @@ fun CastItem(
             text = "as",
             fontSize = 15.sp,
             fontWeight = FontWeight.Normal,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = color,
             textAlign = TextAlign.Center
         )
         Text(
             text = castItem.character,
             fontSize = 15.sp,
             fontWeight = FontWeight.Normal,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = color,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Center
@@ -401,17 +419,18 @@ fun SquareButton(
     modifier: Modifier = Modifier,
     icon: @Composable () -> Unit,
     text: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    color: Color
 ) {
     val mutableInteractionSource = remember { MutableInteractionSource() }
     Column(
         modifier
             .size(100.dp)
-            .border(1.dp, color = Color.White, shape = RoundedCornerShape(8.dp))
+            .border(1.dp, color = color, shape = RoundedCornerShape(8.dp))
             .padding(12.dp)
             .clickable(
                 onClick = onClick,
-                indication = rememberRipple(color = MaterialTheme.colorScheme.onPrimary),
+                indication = rememberRipple(color = color),
                 interactionSource = mutableInteractionSource
             ),
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
@@ -424,7 +443,7 @@ fun SquareButton(
             modifier = Modifier.fillMaxWidth(),
             fontSize = 15.sp,
             fontWeight = FontWeight.Light,
-            color = Color.White,
+            color = color,
             textAlign = TextAlign.Center
         )
     }
