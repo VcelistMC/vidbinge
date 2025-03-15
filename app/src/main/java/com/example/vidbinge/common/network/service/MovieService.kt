@@ -2,6 +2,7 @@ package com.example.vidbinge.common.network.service
 
 import com.example.vidbinge.common.network.dtos.ListResponse
 import com.example.vidbinge.common.network.dtos.MovieDto
+import com.example.vidbinge.details.data.dto.MovieCreditsDTO
 import com.example.vidbinge.details.data.dto.MovieDetailsDTO
 import retrofit2.Response
 import retrofit2.http.GET
@@ -25,4 +26,11 @@ interface MovieService {
     suspend fun getMovieDetails(
         @Path("movie_id") movieId: Int
     ): Response<MovieDetailsDTO>
+
+    @GET("{movie_id}/credits")
+    suspend fun getMovieCredits(
+        @Path("movie_id") movieId: Int
+    ): Response<MovieCreditsDTO>
+
+
 }

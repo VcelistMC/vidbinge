@@ -1,8 +1,7 @@
 package com.example.vidbinge.details.ui.states
 
 import androidx.compose.ui.graphics.Color
-import com.example.vidbinge.common.data.models.Cast
-import com.example.vidbinge.common.data.models.movie.Movie
+import com.example.vidbinge.details.data.model.Cast
 import com.example.vidbinge.common.data.models.movie.MovieDetails
 
 data class MovieDetailsScreenState(

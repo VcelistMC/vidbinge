@@ -40,7 +40,6 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,10 +61,9 @@ import coil3.asDrawable
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import com.example.vidbinge.common.data.coil.TMDbImageSize
-import com.example.vidbinge.common.data.models.Cast
+import com.example.vidbinge.details.data.model.Cast
 import com.example.vidbinge.common.data.models.Genre
 import com.example.vidbinge.common.data.models.RelativeLuma
-import com.example.vidbinge.common.ext.getDominantColor
 import com.example.vidbinge.common.ext.relativeLuma
 import com.example.vidbinge.common.ui.components.LoadingObject
 import com.example.vidbinge.details.ui.viewmodels.MovieDetailsViewModel

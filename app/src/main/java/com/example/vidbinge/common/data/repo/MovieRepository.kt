@@ -5,13 +5,16 @@ import com.example.vidbinge.common.data.models.movie.MovieDetails
 import com.example.vidbinge.common.domain.mapper.MovieDetailsMapper
 import com.example.vidbinge.common.domain.mapper.MovieMapper
 import com.example.vidbinge.common.network.client.MovieRetrofitClient
+import com.example.vidbinge.details.data.model.Cast
+import com.example.vidbinge.details.domain.mapper.CastMapper
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class MovieRepository @Inject constructor(
     private val movieRetrofitClient: MovieRetrofitClient,
     private val movieMapper: MovieMapper,
-    private val movieDetailsMapper: MovieDetailsMapper
+    private val movieDetailsMapper: MovieDetailsMapper,
+    private val castMapper: CastMapper
 ) {
     fun getNowPlayingMovies(): Flow<List<Movie>>{
         return movieRetrofitClient.doRequest({ movieRetrofitClient.service.getNowPlayingMovies() }){
@@ -40,6 +43,12 @@ class MovieRepository @Inject constructor(
     fun getMovieDetails(movieId: Int): Flow<MovieDetails>{
         return movieRetrofitClient.doRequest({ movieRetrofitClient.service.getMovieDetails(movieId) }){
             movieDetailsMapper.mapToModel(it)
+        }
+    }
+
+    fun getMovieCredits(movieId: Int): Flow<List<Cast>>{
+        return movieRetrofitClient.doRequest({ movieRetrofitClient.service.getMovieCredits(movieId) }){
+            it.cast.map { castDto -> castMapper.mapToModel(castDto) }
         }
     }
 }

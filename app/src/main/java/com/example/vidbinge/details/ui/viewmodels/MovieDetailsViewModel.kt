@@ -33,13 +33,14 @@ class MovieDetailsViewModel @Inject constructor(
 
     init {
         getMovieDetails()
+        getMovieCast()
     }
 
-    fun getMovieDetails() {
+    private fun getMovieDetails() {
         viewModelScope.launch {
             movieRepository.getMovieDetails(movieId)
                 .onStart {
-                    movieDetailsScreenState.update { it.copy(isCastListLoading = true, isLoading = true) }
+                    movieDetailsScreenState.update { it.copy(isLoading = true) }
                 }
                 .collect { details ->
                     movieDetailsScreenState.update {
@@ -50,6 +51,21 @@ class MovieDetailsViewModel @Inject constructor(
                     }
                 }
 
+        }
+    }
+
+    private fun getMovieCast(){
+        viewModelScope.launch {
+            movieRepository.getMovieCredits(movieId)
+                .onStart { movieDetailsScreenState.update { it.copy(isCastListLoading = true) } }
+                .collect{ cast ->
+                    movieDetailsScreenState.update {
+                        it.copy(
+                            isCastListLoading = false,
+                            castList = cast.subList(0, 4)
+                        )
+                    }
+                }
         }
     }
 
