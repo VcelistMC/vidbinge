@@ -10,6 +10,9 @@ import androidx.navigation.toRoute
 import com.example.vidbinge.MovieDetailsDestination
 import com.example.vidbinge.common.data.repo.MovieRepository
 import com.example.vidbinge.common.ext.getDominantColor
+import com.example.vidbinge.common.ext.takeAtMost
+import com.example.vidbinge.common.ui.SimpleBaseViewModel
+import com.example.vidbinge.details.ui.intents.MovieDetailsScreenIntent
 import com.example.vidbinge.details.ui.states.MovieDetailsScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,28 +25,21 @@ import javax.inject.Inject
 class MovieDetailsViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : SimpleBaseViewModel<MovieDetailsScreenState, MovieDetailsScreenIntent>() {
 
     private val movieId = savedStateHandle.toRoute<MovieDetailsDestination>().movieId
 
-
-    var movieDetailsScreenState =
-        MutableStateFlow(MovieDetailsScreenState())
-        private set
-
     init {
-        getMovieDetails()
-        getMovieCast()
+        handleIntent(MovieDetailsScreenIntent.LoadMovieDetails)
     }
-
     private fun getMovieDetails() {
         viewModelScope.launch {
             movieRepository.getMovieDetails(movieId)
                 .onStart {
-                    movieDetailsScreenState.update { it.copy(isLoading = true) }
+                    updateState { it.copy(isLoading = true) }
                 }
                 .collect { details ->
-                    movieDetailsScreenState.update {
+                    updateState {
                         it.copy(
                             isLoading = false,
                             extraMovieDetails = details
@@ -57,12 +53,12 @@ class MovieDetailsViewModel @Inject constructor(
     private fun getMovieCast(){
         viewModelScope.launch {
             movieRepository.getMovieCredits(movieId)
-                .onStart { movieDetailsScreenState.update { it.copy(isCastListLoading = true) } }
+                .onStart { updateState { it.copy(isCastListLoading = true) } }
                 .collect{ cast ->
-                    movieDetailsScreenState.update {
+                    updateState {
                         it.copy(
                             isCastListLoading = false,
-                            castList = cast.subList(0, 4)
+                            castList = cast.takeAtMost(4)
                         )
                     }
                 }
@@ -72,7 +68,21 @@ class MovieDetailsViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     fun onImageLoadedForAmbientColor(drawable: Drawable) {
         val ambientColor = drawable.getDominantColor()
-        movieDetailsScreenState.update { it.copy(ambientScreenColor = ambientColor) }
+        updateState { it.copy(ambientScreenColor = ambientColor) }
+    }
 
+    override fun initialState(): MovieDetailsScreenState {
+        return MovieDetailsScreenState(
+            isLoading = true
+        )
+    }
+
+    override fun handleIntent(intent: MovieDetailsScreenIntent) {
+        when(intent){
+            is MovieDetailsScreenIntent.LoadMovieDetails -> {
+                getMovieDetails()
+                getMovieCast()
+            }
+        }
     }
 }

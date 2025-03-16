@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +43,7 @@ import com.example.vidbinge.home.ui.components.MovieCarousel
 import com.example.vidbinge.home.ui.components.MoviePortraitCard
 import com.example.vidbinge.home.ui.components.TVCarousel
 import com.example.vidbinge.home.ui.components.TVPortraitCard
+import com.example.vidbinge.home.ui.intents.HomeScreenIntent
 import com.example.vidbinge.home.ui.states.HomeScreenState
 import com.example.vidbinge.home.ui.viewmodels.HomeScreenViewModel
 
@@ -51,7 +53,8 @@ fun HomeScreen(
     onMovieClicked: (Movie) -> Unit,
     viewModel: HomeScreenViewModel
 ) {
-    val state by viewModel.homeScreenState.collectAsStateWithLifecycle()
+    val state by viewModel.screenState.collectAsStateWithLifecycle()
+
     HomeScreenContent(
         modifier = modifier,
         homeScreenState = state,

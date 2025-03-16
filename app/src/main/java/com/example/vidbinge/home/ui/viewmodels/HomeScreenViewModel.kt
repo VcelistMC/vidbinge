@@ -7,6 +7,10 @@ import com.example.vidbinge.common.data.models.movie.Movie
 import com.example.vidbinge.common.data.models.PillChoices
 import com.example.vidbinge.common.data.repo.MovieRepository
 import com.example.vidbinge.common.data.repo.TVRepository
+import com.example.vidbinge.common.ui.BaseViewModel
+import com.example.vidbinge.common.ui.SideEffect
+import com.example.vidbinge.common.ui.SimpleBaseViewModel
+import com.example.vidbinge.home.ui.intents.HomeScreenIntent
 import com.example.vidbinge.home.ui.states.HomeScreenMovies
 import com.example.vidbinge.home.ui.states.HomeScreenState
 import com.example.vidbinge.home.ui.states.HomeScreenTV
@@ -23,12 +27,10 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
     private val tvRepository: TVRepository
-): ViewModel() {
-    var homeScreenState = MutableStateFlow(HomeScreenState())
-        private set
+): SimpleBaseViewModel<HomeScreenState, HomeScreenIntent>() {
 
     init {
-        populateHomeScreen()
+        handleIntent(HomeScreenIntent.LoadAllData)
     }
 
     private fun populateHomeScreen() {
@@ -37,15 +39,15 @@ class HomeScreenViewModel @Inject constructor(
                 getHomeScreenMovies(),
                 getHomeScreenTV()
             ){ movies, tv ->
-                homeScreenState.value.copy(
+                _screenState.value.copy(
                     homeScreenMovies = movies,
                     homescreenTV = tv,
                     isLoading = false
                 )
             }.onStart {
-                homeScreenState.update { oldState -> oldState.copy(isLoading = true) }
+                updateState { oldState -> oldState.copy(isLoading = true) }
             }.collect { combinedState ->
-                homeScreenState.update { oldState ->
+                updateState { oldState ->
                     oldState.copy(
                         homeScreenMovies = combinedState.homeScreenMovies,
                         homescreenTV = combinedState.homescreenTV,
@@ -71,7 +73,7 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun onPillPressed(selectedPill: PillChoices){
-        homeScreenState.update {
+        updateState {
             it.copy(selectedPill = selectedPill)
         }
     }
@@ -95,5 +97,15 @@ class HomeScreenViewModel @Inject constructor(
             )
         }
 
+    }
+
+    override fun initialState(): HomeScreenState {
+        return HomeScreenState()
+    }
+
+    override fun handleIntent(intent: HomeScreenIntent) {
+        when(intent){
+            is HomeScreenIntent.LoadAllData -> populateHomeScreen()
+        }
     }
 }

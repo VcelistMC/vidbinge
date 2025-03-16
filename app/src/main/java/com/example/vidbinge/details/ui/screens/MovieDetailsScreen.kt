@@ -40,6 +40,7 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +67,7 @@ import com.example.vidbinge.common.data.models.Genre
 import com.example.vidbinge.common.data.models.RelativeLuma
 import com.example.vidbinge.common.ext.relativeLuma
 import com.example.vidbinge.common.ui.components.LoadingObject
+import com.example.vidbinge.details.ui.intents.MovieDetailsScreenIntent
 import com.example.vidbinge.details.ui.viewmodels.MovieDetailsViewModel
 import com.example.vidbinge.details.ui.states.MovieDetailsScreenState
 
@@ -76,7 +78,8 @@ fun MovieDetailsScreen(
     onBackClicked: () -> Unit
 ) {
     val viewModel = hiltViewModel<MovieDetailsViewModel>()
-    val detailsScreenState = viewModel.movieDetailsScreenState.collectAsStateWithLifecycle()
+
+    val detailsScreenState = viewModel.screenState.collectAsStateWithLifecycle()
     if (detailsScreenState.value.isLoading) {
         LoadingObject()
     } else {
@@ -445,12 +448,4 @@ fun SquareButton(
             textAlign = TextAlign.Center
         )
     }
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview
-@Composable
-fun MovieDetailsPreview() {
-
 }
