@@ -66,6 +66,7 @@ import com.example.vidbinge.details.data.model.Cast
 import com.example.vidbinge.common.data.models.Genre
 import com.example.vidbinge.common.data.models.RelativeLuma
 import com.example.vidbinge.common.ext.relativeLuma
+import com.example.vidbinge.common.ui.components.ErrorScreen
 import com.example.vidbinge.common.ui.components.LoadingObject
 import com.example.vidbinge.details.ui.intents.MovieDetailsScreenIntent
 import com.example.vidbinge.details.ui.viewmodels.MovieDetailsViewModel
@@ -82,6 +83,8 @@ fun MovieDetailsScreen(
     val detailsScreenState = viewModel.screenState.collectAsStateWithLifecycle()
     if (detailsScreenState.value.isLoading) {
         LoadingObject()
+    } else if(detailsScreenState.value.errorMessage != null){
+        ErrorScreen(message = detailsScreenState.value.errorMessage!!)
     } else {
         MovieDetailsContent(
             modifier = modifier,

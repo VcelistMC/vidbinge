@@ -1,6 +1,8 @@
 package com.example.vidbinge.common.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -8,19 +10,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 abstract class BaseViewModel <STATE: State, INTENT: Intent, SIDE_EFFECT: SideEffect> : SimpleBaseViewModel<STATE, INTENT>(){
 
-    protected var _screenEffects = MutableSharedFlow<SIDE_EFFECT>()
+    private var _screenEffects = MutableSharedFlow<SIDE_EFFECT>()
     val screenEffects: SharedFlow<SIDE_EFFECT> = _screenEffects.asSharedFlow()
 
-    fun sendEffect(effect: SIDE_EFFECT) {
-        _screenEffects.tryEmit(effect)
+    protected fun sendEffect(effect: SIDE_EFFECT) {
+        viewModelScope.launch { _screenEffects.emit(effect) }
     }
 }
 
 abstract class SimpleBaseViewModel <STATE: State, INTENT: Intent> : ViewModel(){
-    protected var _screenState = MutableStateFlow(initialState())
+    private var _screenState = MutableStateFlow(initialState())
     val screenState: StateFlow<STATE> = _screenState.asStateFlow()
 
 

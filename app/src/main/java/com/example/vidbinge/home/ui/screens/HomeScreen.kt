@@ -1,5 +1,7 @@
 package com.example.vidbinge.home.ui.screens
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,11 +15,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -27,22 +24,25 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vidbinge.common.data.models.movie.Movie
 import com.example.vidbinge.common.data.models.PillChoices
 import com.example.vidbinge.common.data.models.tvshow.TvShow
+import com.example.vidbinge.common.ext.debugBorder
+import com.example.vidbinge.common.ui.components.ErrorScreen
 import com.example.vidbinge.common.ui.components.PillBar
 import com.example.vidbinge.common.ui.components.PillBarTheme
 import com.example.vidbinge.home.ui.components.MovieCarousel
 import com.example.vidbinge.home.ui.components.MoviePortraitCard
 import com.example.vidbinge.home.ui.components.TVCarousel
 import com.example.vidbinge.home.ui.components.TVPortraitCard
+import com.example.vidbinge.home.ui.effects.HomeScreenEffect
 import com.example.vidbinge.home.ui.intents.HomeScreenIntent
 import com.example.vidbinge.home.ui.states.HomeScreenState
 import com.example.vidbinge.home.ui.viewmodels.HomeScreenViewModel
@@ -54,22 +54,18 @@ fun HomeScreen(
     viewModel: HomeScreenViewModel
 ) {
     val state by viewModel.screenState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
-    HomeScreenContent(
-        modifier = modifier,
-        homeScreenState = state,
-        onPillPressed = viewModel::onPillPressed,
-        onMoviePressed = onMovieClicked
-    )
-}
+    LaunchedEffect(Unit) {
+        viewModel.screenEffects.collect { effect ->
+            when(effect){
+                is HomeScreenEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
-@Composable
-fun HomeScreenContent(
-    modifier: Modifier = Modifier,
-    homeScreenState: HomeScreenState,
-    onPillPressed: (PillChoices) -> Unit,
-    onMoviePressed: (Movie) -> Unit
-) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -81,11 +77,33 @@ fun HomeScreenContent(
                 notificationCount = 2
             )
         }
-    ) { padding ->
+    ) { paddingValues ->
+        if(state.errorMessage != null){
+            ErrorScreen(
+                Modifier.padding(paddingValues),
+                message = state.errorMessage!!
+            )
+        }else{
+            HomeScreenContent(
+                modifier = Modifier.padding(paddingValues),
+                homeScreenState = state,
+                onPillPressed = { viewModel.handleIntent(HomeScreenIntent.SwitchPill(it)) },
+                onMoviePressed = onMovieClicked
+            )
+        }
+    }
+}
+
+@Composable
+fun HomeScreenContent(
+    modifier: Modifier = Modifier,
+    homeScreenState: HomeScreenState,
+    onPillPressed: (PillChoices) -> Unit,
+    onMoviePressed: (Movie) -> Unit,
+) {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
-                .padding(padding)
                 .verticalScroll(
                     state = rememberScrollState(),
                 ),
@@ -176,7 +194,7 @@ fun HomeScreenContent(
 
         }
     }
-}
+
 
 
 @Composable

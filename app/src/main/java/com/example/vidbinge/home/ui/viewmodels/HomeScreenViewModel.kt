@@ -1,5 +1,6 @@
 package com.example.vidbinge.home.ui.viewmodels
 
+import android.app.Application
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,9 +8,12 @@ import com.example.vidbinge.common.data.models.movie.Movie
 import com.example.vidbinge.common.data.models.PillChoices
 import com.example.vidbinge.common.data.repo.MovieRepository
 import com.example.vidbinge.common.data.repo.TVRepository
+import com.example.vidbinge.common.network.connectivity.ConnectivityObserver
+import com.example.vidbinge.common.network.connectivity.NetworkConnectivityObserver
 import com.example.vidbinge.common.ui.BaseViewModel
 import com.example.vidbinge.common.ui.SideEffect
 import com.example.vidbinge.common.ui.SimpleBaseViewModel
+import com.example.vidbinge.home.ui.effects.HomeScreenEffect
 import com.example.vidbinge.home.ui.intents.HomeScreenIntent
 import com.example.vidbinge.home.ui.states.HomeScreenMovies
 import com.example.vidbinge.home.ui.states.HomeScreenState
@@ -17,6 +21,7 @@ import com.example.vidbinge.home.ui.states.HomeScreenTV
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
@@ -26,11 +31,33 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
-    private val tvRepository: TVRepository
-): SimpleBaseViewModel<HomeScreenState, HomeScreenIntent>() {
+    private val tvRepository: TVRepository,
+    application: Application
+): BaseViewModel<HomeScreenState, HomeScreenIntent, HomeScreenEffect>() {
+
+    private val networkConnectivityObserver = NetworkConnectivityObserver(application.applicationContext)
 
     init {
         handleIntent(HomeScreenIntent.LoadAllData)
+        observeNetworkConnectivity()
+    }
+
+    private fun observeNetworkConnectivity() {
+        viewModelScope.launch {
+            networkConnectivityObserver.observe().collect { state ->
+                when(state){
+                    ConnectivityObserver.ConnectivityStatus.AVAILABLE -> {
+                        handleIntent(HomeScreenIntent.LoadAllData)
+                    }
+                    ConnectivityObserver.ConnectivityStatus.UNAVAILABLE -> {
+                        updateState { it.copy(errorMessage = "No internet connection") }
+                    }
+                    ConnectivityObserver.ConnectivityStatus.LOST -> {
+                        sendEffect(HomeScreenEffect.ShowToast("Internet Connection Lost"))
+                    }
+                }
+            }
+        }
     }
 
     private fun populateHomeScreen() {
@@ -39,19 +66,22 @@ class HomeScreenViewModel @Inject constructor(
                 getHomeScreenMovies(),
                 getHomeScreenTV()
             ){ movies, tv ->
-                _screenState.value.copy(
+                screenState.value.copy(
                     homeScreenMovies = movies,
                     homescreenTV = tv,
                     isLoading = false
                 )
             }.onStart {
                 updateState { oldState -> oldState.copy(isLoading = true) }
+            }.catch{
+                updateState { oldState -> oldState.copy(isLoading = false, errorMessage = "No Internet Connection") }
             }.collect { combinedState ->
                 updateState { oldState ->
                     oldState.copy(
                         homeScreenMovies = combinedState.homeScreenMovies,
                         homescreenTV = combinedState.homescreenTV,
-                        isLoading = false
+                        isLoading = false,
+                        errorMessage = null
                     )
                 }
             }
@@ -72,14 +102,10 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-    fun onPillPressed(selectedPill: PillChoices){
+    private fun onPillPressed(selectedPill: PillChoices){
         updateState {
             it.copy(selectedPill = selectedPill)
         }
-    }
-
-    fun onMoviePressed(movie: Movie){
-
     }
 
     private fun getHomeScreenMovies(): Flow<HomeScreenMovies> {
@@ -106,6 +132,7 @@ class HomeScreenViewModel @Inject constructor(
     override fun handleIntent(intent: HomeScreenIntent) {
         when(intent){
             is HomeScreenIntent.LoadAllData -> populateHomeScreen()
+            is HomeScreenIntent.SwitchPill -> onPillPressed(intent.pill)
         }
     }
 }

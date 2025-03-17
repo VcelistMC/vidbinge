@@ -10,7 +10,7 @@ data class MovieDetailsScreenState(
     val isAddedToWatchList: Boolean = false,
     val isLoading: Boolean = false,
     val isCastListLoading: Boolean = false,
-    val error: String? = null,
+    val errorMessage: String? = null,
     val extraMovieDetails: MovieDetails? = null,
     val ambientScreenColor: Color = Color.White
 ): State
