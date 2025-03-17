@@ -37,6 +37,7 @@ class MovieDetailsViewModel @Inject constructor(
 
     private val movieId = savedStateHandle.toRoute<MovieDetailsDestination>().movieId
     private val networkConnectivityObserver = NetworkConnectivityObserver(application.applicationContext)
+    private var latestNetworkState: ConnectivityObserver.ConnectivityStatus = ConnectivityObserver.ConnectivityStatus.UNAVAILABLE
 
 
     init {
@@ -48,6 +49,7 @@ class MovieDetailsViewModel @Inject constructor(
     private fun observeNetworkConnectivity() {
         viewModelScope.launch {
             networkConnectivityObserver.observe().collect { state ->
+                latestNetworkState = state
                 when(state){
                     ConnectivityObserver.ConnectivityStatus.AVAILABLE -> {
                         handleIntent(MovieDetailsScreenIntent.LoadMovieDetails)
@@ -109,8 +111,12 @@ class MovieDetailsViewModel @Inject constructor(
     override fun handleIntent(intent: MovieDetailsScreenIntent) {
         when(intent){
             is MovieDetailsScreenIntent.LoadMovieDetails -> {
-                getMovieDetails()
-                getMovieCast()
+                if(latestNetworkState != ConnectivityObserver.ConnectivityStatus.AVAILABLE){
+                    updateState { it.copy(errorMessage = "No Internet Connection", isLoading = false) }
+                }else{
+                    getMovieDetails()
+                    getMovieCast()
+                }
             }
         }
     }
