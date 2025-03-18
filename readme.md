@@ -124,7 +124,7 @@ User accounts will be implemented, allowing for sign-ins, personalized profiles,
 
 ## Screenshots
 
-![Home Screen](screenshots/home_screen.png) ![Movie Details](screenshots/movie_details.png)
+![Home Screen & Movie Details](screenshots/combined.png)
 
 ## Contributing
 
