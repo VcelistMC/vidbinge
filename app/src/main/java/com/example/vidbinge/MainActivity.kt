@@ -9,19 +9,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.vidbinge.common.data.models.movie.Movie
-import com.example.vidbinge.common.data.models.movie.MovieDetails
-import com.example.vidbinge.common.ui.navtypes.MovieType
+import com.example.vidbinge.details.ui.screens.MovieDetailsDestination
 import com.example.vidbinge.details.ui.screens.MovieDetailsScreen
+import com.example.vidbinge.details.ui.screens.TvShowDetailsDestination
+import com.example.vidbinge.details.ui.screens.TvShowDetailsScreen
+import com.example.vidbinge.home.ui.screens.HomeDestination
 import com.example.vidbinge.home.ui.screens.HomeScreen
 import com.example.vidbinge.ui.theme.old.VidBingeTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
-import kotlin.reflect.typeOf
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -40,12 +39,24 @@ class MainActivity : ComponentActivity() {
                                 viewModel = hiltViewModel(),
                                 onMovieClicked = { movie ->
                                     navController.navigate(MovieDetailsDestination(movie.id))
+                                },
+                                onTvShowClicked = {tvShow ->
+                                    navController.navigate(TvShowDetailsDestination(tvShow.id))
                                 }
                             )
                         }
 
                         composable<MovieDetailsDestination>{
                             MovieDetailsScreen(
+                                Modifier.padding(innerPadding),
+                                onBackClicked = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        composable<TvShowDetailsDestination>{
+                            TvShowDetailsScreen(
                                 Modifier.padding(innerPadding),
                                 onBackClicked = {
                                     navController.popBackStack()
@@ -59,12 +70,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-@Serializable
-object HomeDestination
-
-
-@Serializable
-data class MovieDetailsDestination(
-    val movieId: Int
-)

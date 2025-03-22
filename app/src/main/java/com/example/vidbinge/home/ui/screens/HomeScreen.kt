@@ -1,6 +1,5 @@
 package com.example.vidbinge.home.ui.screens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -34,7 +33,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vidbinge.common.data.models.movie.Movie
 import com.example.vidbinge.common.data.models.PillChoices
 import com.example.vidbinge.common.data.models.tvshow.TvShow
-import com.example.vidbinge.common.ext.debugBorder
 import com.example.vidbinge.common.ui.components.ErrorScreen
 import com.example.vidbinge.common.ui.components.PillBar
 import com.example.vidbinge.common.ui.components.PillBarTheme
@@ -46,11 +44,16 @@ import com.example.vidbinge.home.ui.effects.HomeScreenEffect
 import com.example.vidbinge.home.ui.intents.HomeScreenIntent
 import com.example.vidbinge.home.ui.states.HomeScreenState
 import com.example.vidbinge.home.ui.viewmodels.HomeScreenViewModel
+import kotlinx.serialization.Serializable
+
+@Serializable
+object HomeDestination
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onMovieClicked: (Movie) -> Unit,
+    onTvShowClicked: (TvShow) -> Unit,
     viewModel: HomeScreenViewModel
 ) {
     val state by viewModel.screenState.collectAsStateWithLifecycle()
@@ -88,7 +91,8 @@ fun HomeScreen(
                 modifier = Modifier.padding(paddingValues),
                 homeScreenState = state,
                 onPillPressed = { viewModel.handleIntent(HomeScreenIntent.SwitchPill(it)) },
-                onMoviePressed = onMovieClicked
+                onMoviePressed = onMovieClicked,
+                onTvShowClicked = onTvShowClicked
             )
         }
     }
@@ -100,6 +104,7 @@ fun HomeScreenContent(
     homeScreenState: HomeScreenState,
     onPillPressed: (PillChoices) -> Unit,
     onMoviePressed: (Movie) -> Unit,
+    onTvShowClicked: (TvShow) -> Unit,
 ) {
         Column(
             modifier = modifier
@@ -134,7 +139,7 @@ fun HomeScreenContent(
                 AnimatedVisibility(homeScreenState.selectedPill == PillChoices.TV) {
                     NowPlayingTv(
                         tvList = homeScreenState.homescreenTV.nowAiringShows,
-                        onNowPlayingTvPressed = {}
+                        onNowPlayingTvPressed = onTvShowClicked
                     )
                 }
 
@@ -158,7 +163,7 @@ fun HomeScreenContent(
                         modifier = Modifier.padding(12.dp),
                         title = "Popular TV Shows",
                         tvList = homeScreenState.homescreenTV.popularShows,
-                        onTvCardPressed = {  }
+                        onTvCardPressed = onTvShowClicked
                     )
                 }
 
@@ -184,7 +189,7 @@ fun HomeScreenContent(
                         modifier = Modifier.padding(12.dp),
                         title = "Top Rated TV Shows",
                         tvList = homeScreenState.homescreenTV.topRatedShows,
-                        onTvCardPressed = {}
+                        onTvCardPressed = onTvShowClicked
                     )
                 }
 

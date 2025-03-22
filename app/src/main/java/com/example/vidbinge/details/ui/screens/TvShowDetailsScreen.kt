@@ -68,25 +68,24 @@ import com.example.vidbinge.common.data.models.RelativeLuma
 import com.example.vidbinge.common.ext.relativeLuma
 import com.example.vidbinge.common.ui.components.ErrorScreen
 import com.example.vidbinge.common.ui.components.LoadingObject
-import com.example.vidbinge.details.ui.intents.MovieDetailsScreenIntent
-import com.example.vidbinge.details.ui.viewmodels.MovieDetailsViewModel
-import com.example.vidbinge.details.ui.states.MovieDetailsScreenState
+import com.example.vidbinge.details.ui.states.TvShowDetailsScreenState
+import com.example.vidbinge.details.ui.viewmodels.TvShowDetailsViewModel
 import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class MovieDetailsDestination(
-    val movieId: Int
+data class TvShowDetailsDestination(
+    val tvShowId: Int
 )
 
 
 @SuppressLint("NewApi")
 @Composable
-fun MovieDetailsScreen(
+fun TvShowDetailsScreen(
     modifier: Modifier = Modifier,
     onBackClicked: () -> Unit
 ) {
-    val viewModel = hiltViewModel<MovieDetailsViewModel>()
+    val viewModel = hiltViewModel<TvShowDetailsViewModel>()
 
     val detailsScreenState = viewModel.screenState.collectAsStateWithLifecycle()
     if (detailsScreenState.value.isLoading) {
@@ -94,9 +93,9 @@ fun MovieDetailsScreen(
     } else if(detailsScreenState.value.errorMessage != null){
         ErrorScreen(message = detailsScreenState.value.errorMessage!!)
     } else {
-        MovieDetailsContent(
+        TvShowDetailsContent(
             modifier = modifier,
-            movieDetailsScreenState = detailsScreenState.value,
+            tvShowDetailsScreenState = detailsScreenState.value,
             onShareClicked = {},
             onWatchlistClicked = {},
             onImageLoadedForAmbientColor = viewModel::onImageLoadedForAmbientColor,
@@ -109,9 +108,9 @@ fun MovieDetailsScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MovieDetailsContent(
+fun TvShowDetailsContent(
     modifier: Modifier = Modifier,
-    movieDetailsScreenState: MovieDetailsScreenState,
+    tvShowDetailsScreenState: TvShowDetailsScreenState,
     onShareClicked: () -> Unit,
     onWatchlistClicked: () -> Unit,
     onBackClicked: () -> Unit,
@@ -127,23 +126,23 @@ fun MovieDetailsContent(
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         Color.Transparent,
-                        movieDetailsScreenState.ambientScreenColor,
+                        tvShowDetailsScreenState.ambientScreenColor,
                     ),
                     endY = 100f
                 )
             )
     ) {
-        val (movieImage, movieDetails, backBtn) = createRefs()
+        val (tvImage, tvDetails, backBtn) = createRefs()
         AsyncImage(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(350.dp)
-                .constrainAs(movieImage) {
+                .constrainAs(tvImage) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 },
-            model = movieDetailsScreenState.extraMovieDetails!!.backdropFullUrl(TMDbImageSize.X_LARGE),
+            model = tvShowDetailsScreenState.tvShowDetails!!.backdropFullUrl(TMDbImageSize.X_LARGE),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             alignment = Alignment.TopCenter,
@@ -163,27 +162,27 @@ fun MovieDetailsContent(
             onClick = onBackClicked
         )
 
-        MovieDetailsBlock(
+        TvShowDetailsBlock(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            movieDetailsScreenState.ambientScreenColor,
+                            tvShowDetailsScreenState.ambientScreenColor,
                         ),
                         endY = 100f
                     )
                 )
 
-                .constrainAs(movieDetails) {
-                    top.linkTo(movieImage.bottom, (-50).dp)
+                .constrainAs(tvDetails) {
+                    top.linkTo(tvImage.bottom, (-50).dp)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 }
 
                 .padding(horizontal = 12.dp),
-            screenState = movieDetailsScreenState,
+            screenState = tvShowDetailsScreenState,
             onWatchlistClicked = onWatchlistClicked,
             onShareClicked = onShareClicked
         )
@@ -191,14 +190,14 @@ fun MovieDetailsContent(
 }
 
 @Composable
-fun MovieDetailsBlock(
+fun TvShowDetailsBlock(
     modifier: Modifier,
-    screenState: MovieDetailsScreenState,
+    screenState: TvShowDetailsScreenState,
     onWatchlistClicked: () -> Unit,
     onShareClicked: () -> Unit,
 ) {
     ConstraintLayout(modifier) {
-        val (movieTitle, yearRuntimeRow, overviewText, genresChips, buttonRow, cast) = createRefs()
+        val (tvTitle, yearRuntimeRow, overviewText, genresChips, buttonRow, cast) = createRefs()
 
         val textColorAgainstDominant = if (screenState.ambientScreenColor.relativeLuma == RelativeLuma.BRIGHT)
             MaterialTheme.colorScheme.primary
@@ -206,8 +205,8 @@ fun MovieDetailsBlock(
             MaterialTheme.colorScheme.onPrimary
 
         Text(
-            text = screenState.extraMovieDetails!!.title,
-            modifier = Modifier.constrainAs(movieTitle) {
+            text = screenState.tvShowDetails!!.title,
+            modifier = Modifier.constrainAs(tvTitle) {
                 top.linkTo(parent.top, 50.dp)
                 start.linkTo(parent.start)
             },
@@ -217,9 +216,9 @@ fun MovieDetailsBlock(
         )
 
         Text(
-            text = "${screenState.extraMovieDetails.releaseYear} • ${screenState.extraMovieDetails.runtimeAsString()} • ⭐ ${screenState.extraMovieDetails.voteAverage}",
+            text = "⭐ ${screenState.tvShowDetails.voteAverage}",
             modifier = Modifier.constrainAs(yearRuntimeRow) {
-                top.linkTo(movieTitle.bottom, 12.dp)
+                top.linkTo(tvTitle.bottom, 12.dp)
                 start.linkTo(parent.start)
             },
             fontSize = 15.sp,
@@ -231,13 +230,13 @@ fun MovieDetailsBlock(
                 top.linkTo(yearRuntimeRow.bottom, 12.dp)
                 start.linkTo(parent.start)
             },
-            genres = screenState.extraMovieDetails.genres,
+            genres = screenState.tvShowDetails.genres,
             onChipClicked = {},
             color = textColorAgainstDominant
         )
 
         Text(
-            text = screenState.extraMovieDetails.overview,
+            text = screenState.tvShowDetails.overview,
             modifier = Modifier
                 .fillMaxWidth()
                 .constrainAs(overviewText) {
@@ -255,7 +254,8 @@ fun MovieDetailsBlock(
                     top.linkTo(overviewText.bottom, 12.dp)
                     start.linkTo(parent.start)
                 }
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SquareButton(
@@ -286,177 +286,6 @@ fun MovieDetailsBlock(
                 color = textColorAgainstDominant
             )
         }
-
-        if (screenState.isCastListLoading) {
-            LinearProgressIndicator(
-                Modifier
-                    .fillMaxWidth()
-                    .constrainAs(cast) {
-                        top.linkTo(buttonRow.bottom, 12.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }
-                    .padding(bottom = 20.dp))
-        } else {
-            Cast(
-                modifier = Modifier
-                    .constrainAs(cast) {
-                        top.linkTo(buttonRow.bottom, 12.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }
-                    .padding(bottom = 20.dp),
-                cast = screenState.castList,
-                color = textColorAgainstDominant
-            )
-        }
     }
 }
 
-@Composable
-fun GenresFlowChips(
-    modifier: Modifier = Modifier,
-    genres: List<Genre>,
-    onChipClicked: (Genre) -> Unit,
-    color: Color
-) {
-    FlowRow(modifier) {
-        genres.forEach { genre ->
-            SuggestionChip(
-                onClick = { onChipClicked(genre) },
-                label = { Text(genre.genre) },
-                colors = SuggestionChipDefaults.suggestionChipColors(
-                    labelColor = color,
-                    containerColor = Color.Transparent
-                )
-            )
-            Spacer(Modifier.width(6.dp))
-        }
-    }
-}
-
-@Composable
-fun BackButton(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    IconButton(
-        modifier = modifier.background(
-            color = Color.White,
-            shape = CircleShape
-        ),
-        onClick = onClick,
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-            contentDescription = null,
-            tint = Color.Black
-        )
-    }
-}
-
-@Composable
-fun Cast(
-    modifier: Modifier = Modifier,
-    cast: List<Cast>,
-    color: Color
-) {
-    Column(
-        modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = "Cast",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = color
-        )
-
-        cast.forEach {
-            CastItem(castItem = it, color = color)
-        }
-
-    }
-}
-
-@Composable
-fun CastItem(
-    modifier: Modifier = Modifier,
-    castItem: Cast = Cast.mockList.first(),
-    color: Color
-) {
-    Row(
-        modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        AsyncImage(
-            modifier = Modifier
-                .size(30.dp)
-                .clip(CircleShape),
-            model = castItem.profileFullPath(TMDbImageSize.SMALL),
-            contentDescription = null,
-            contentScale = ContentScale.Crop
-        )
-        Text(
-            text = castItem.name,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Normal,
-            color = color,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = "as",
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Normal,
-            color = color,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = castItem.character,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Normal,
-            color = color,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
-        )
-
-    }
-}
-
-@Composable
-fun SquareButton(
-    modifier: Modifier = Modifier,
-    icon: @Composable () -> Unit,
-    text: String,
-    onClick: () -> Unit,
-    color: Color
-) {
-    val mutableInteractionSource = remember { MutableInteractionSource() }
-    Column(
-        modifier
-            .size(100.dp)
-            .border(1.dp, color = color, shape = RoundedCornerShape(8.dp))
-            .padding(12.dp)
-            .clickable(
-                onClick = onClick,
-                indication = rememberRipple(color = color),
-                interactionSource = mutableInteractionSource
-            ),
-        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        icon()
-
-        Text(
-            text = text,
-            modifier = Modifier.fillMaxWidth(),
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Light,
-            color = color,
-            textAlign = TextAlign.Center
-        )
-    }
-}

@@ -73,10 +73,3 @@ data class MovieDetailsDTO(
     val voteCount: Int
 )
 
-data class GenreDTO(
-    @SerializedName("id")
-    val id: Int,
-
-    @SerializedName("name")
-    val name: String
-)

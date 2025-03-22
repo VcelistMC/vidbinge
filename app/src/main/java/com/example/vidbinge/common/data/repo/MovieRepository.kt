@@ -1,12 +1,12 @@
 package com.example.vidbinge.common.data.repo
 
 import com.example.vidbinge.common.data.models.movie.Movie
-import com.example.vidbinge.common.data.models.movie.MovieDetails
-import com.example.vidbinge.common.domain.mapper.MovieDetailsMapper
+import com.example.vidbinge.details.data.model.MovieDetails
 import com.example.vidbinge.common.domain.mapper.MovieMapper
 import com.example.vidbinge.common.network.client.MovieRetrofitClient
 import com.example.vidbinge.details.data.model.Cast
 import com.example.vidbinge.details.domain.mapper.CastMapper
+import com.example.vidbinge.details.domain.mapper.MovieDetailsMapper
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
