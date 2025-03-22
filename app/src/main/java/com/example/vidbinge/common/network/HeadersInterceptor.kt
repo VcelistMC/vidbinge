@@ -1,7 +1,7 @@
 package com.example.vidbinge.common.network
 
 import android.os.Build
-import com.example.vidbinge.common.Secrets
+import com.example.vidbinge.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -13,10 +13,7 @@ class HeadersInterceptor : Interceptor {
             .addHeader("OS-Version", "${Build.VERSION.SDK_INT}")
             .addHeader("Accept-Language", "en")
 
-        request = request.addHeader("Authorization", "Bearer ${Secrets.TOKEN}")
-        val success = kotlin.random.Random.nextBoolean()
-        if(success){
-        }
+        request = request.addHeader("Authorization", "Bearer ${BuildConfig.API_KEY}")
         return chain.proceed(request.build())
     }
 }

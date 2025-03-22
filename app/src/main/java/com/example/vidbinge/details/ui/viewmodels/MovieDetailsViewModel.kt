@@ -8,21 +8,26 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.toRoute
 import com.example.vidbinge.MovieDetailsDestination
+import com.example.vidbinge.common.data.models.movie.MovieDetails
 import com.example.vidbinge.common.data.repo.MovieRepository
 import com.example.vidbinge.common.ext.getDominantColor
 import com.example.vidbinge.common.ext.takeAtMost
 import com.example.vidbinge.common.network.connectivity.ConnectivityObserver
 import com.example.vidbinge.common.network.connectivity.NetworkConnectivityObserver
 import com.example.vidbinge.common.ui.SimpleBaseViewModel
+import com.example.vidbinge.details.data.model.Cast
 import com.example.vidbinge.details.ui.intents.MovieDetailsScreenIntent
 import com.example.vidbinge.details.ui.states.MovieDetailsScreenState
 import com.example.vidbinge.home.ui.effects.HomeScreenEffect
 import com.example.vidbinge.home.ui.intents.HomeScreenIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -49,7 +54,6 @@ class MovieDetailsViewModel @Inject constructor(
     private fun observeNetworkConnectivity() {
         viewModelScope.launch {
             networkConnectivityObserver.observe().collect { state ->
-                latestNetworkState = state
                 when(state){
                     ConnectivityObserver.ConnectivityStatus.AVAILABLE -> {
                         handleIntent(MovieDetailsScreenIntent.LoadMovieDetails)
@@ -62,37 +66,50 @@ class MovieDetailsViewModel @Inject constructor(
             }
         }
     }
-    private fun getMovieDetails() {
-        viewModelScope.launch {
-            movieRepository.getMovieDetails(movieId)
-                .onStart {
-                    updateState { it.copy(isLoading = true) }
-                }.catch{
-
-                }.collect { details ->
-                    updateState {
-                        it.copy(
-                            isLoading = false,
-                            extraMovieDetails = details
-                        )
-                    }
-                }
-
-        }
+    private fun getMovieDetails(): Flow<MovieDetails> {
+        return movieRepository.getMovieDetails(movieId)
     }
 
-    private fun getMovieCast(){
+    private fun getMovieCast(): Flow<List<Cast>>{
+        return movieRepository.getMovieCredits(movieId)
+    }
+
+    private fun getMovieData(){
         viewModelScope.launch {
-            movieRepository.getMovieCredits(movieId)
-                .onStart { updateState { it.copy(isCastListLoading = true) } }
-                .collect{ cast ->
-                    updateState {
-                        it.copy(
-                            isCastListLoading = false,
-                            castList = cast.takeAtMost(4)
-                        )
-                    }
+            combine(
+                getMovieDetails(),
+                getMovieCast()
+            ) { movieDetails, movieCast ->
+                screenState.value.copy(
+                    extraMovieDetails = movieDetails,
+                    castList = movieCast.takeAtMost(4),
+                    isLoading = false
+                )
+            }.onStart {
+                updateState {
+                    it.copy(
+                        isLoading = true,
+                        isCastListLoading = true
+                    )
                 }
+            }.catch {
+                updateState { oldState ->
+                    oldState.copy(
+                        isLoading = false,
+                        isCastListLoading = false,
+                        errorMessage = "Something went wrong !"
+                    )
+                }
+            }.collect{ combinedState ->
+                updateState {
+                    it.copy(
+                        extraMovieDetails = combinedState.extraMovieDetails,
+                        castList = combinedState.castList,
+                        isLoading = false,
+                        isCastListLoading = false
+                    )
+                }
+            }
         }
     }
 
@@ -111,12 +128,7 @@ class MovieDetailsViewModel @Inject constructor(
     override fun handleIntent(intent: MovieDetailsScreenIntent) {
         when(intent){
             is MovieDetailsScreenIntent.LoadMovieDetails -> {
-                if(latestNetworkState != ConnectivityObserver.ConnectivityStatus.AVAILABLE){
-                    updateState { it.copy(errorMessage = "No Internet Connection", isLoading = false) }
-                }else{
-                    getMovieDetails()
-                    getMovieCast()
-                }
+                getMovieData()
             }
         }
     }
