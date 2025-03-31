@@ -1,4 +1,4 @@
-package com.example.vidbinge.details.ui.composables
+package com.example.vidbinge.details.ui.components
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
